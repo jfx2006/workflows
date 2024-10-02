@@ -1,0 +1,41 @@
+---
+name: Build
+on:
+  workflow_dispatch:
+
+jobs:
+  dump_config:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dump Vars context
+        id: variables
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
+        run: |
+          echo "$GITHUB_CONTEXT"
+
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        flavor: ["github", "playstore"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: .
+
+      - name: Build
+        shell: bash
+        env:
+          FLAVOR: ${{ matrix.flavor }}
+        run: |
+          rm -rf upload
+          mkdir upload
+          dd if=/dev/urandom bs=512 count=1 of=/dev/stdout | base64 > upload/${FLAVOR}_release_file.txt
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifact-${{ matrix.flavor }}
+          path: upload/
+          if-no-files-found: error
