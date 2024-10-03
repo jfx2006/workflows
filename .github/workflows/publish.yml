@@ -32,8 +32,6 @@ jobs:
         with:
           workflow: build.yml
           workflow_conclusion: success
-          branch: ${{ github.ref }}
-          commit: ${{ github.sha }}
           event: workflow_call
           run_id: ${{ inputs.workflow_run_id }}
           run_number: ${{ inputs.workflow_run_number }}
