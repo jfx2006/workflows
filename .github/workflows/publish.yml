@@ -27,22 +27,27 @@ jobs:
     permissions:
         contents: write
     steps:
-      - name: Download
-        uses: dawidd6/action-download-artifact@v6
+#      - name: Download
+#        uses: dawidd6/action-download-artifact@v6
+#        with:
+#          workflow: build.yml
+#          workflow_conclusion: success
+#          event: workflow_call
+#          run_id: ${{ inputs.workflow_run_id }}
+#          run_number: ${{ inputs.workflow_run_number }}
+#          name: test-artifact-github
+#          path: artifacts
+#          # Optional, check the workflow run to whether it has an artifact
+#          # then will get the last available artifact from the previous workflow
+#          # default false, just try to download from the last one
+#          check_artifacts: false
+#          if_no_artifact_found: fail
+#          allow_forks: false
+
+      - uses: actions/download-artifact@v4
         with:
-          workflow: build.yml
-          workflow_conclusion: success
-          event: workflow_call
-          run_id: ${{ inputs.workflow_run_id }}
-          run_number: ${{ inputs.workflow_run_number }}
           name: test-artifact-github
-          path: artifacts
-          # Optional, check the workflow run to whether it has an artifact
-          # then will get the last available artifact from the previous workflow
-          # default false, just try to download from the last one
-          check_artifacts: false
-          if_no_artifact_found: fail
-          allow_forks: false
+          path: artifacts/
 
       - name: Version/Tag
         shell: bash
