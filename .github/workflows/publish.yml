@@ -1,0 +1,64 @@
+---
+name: Publish
+on:
+  workflow_call:
+    inputs:
+      workflow_run_id:
+        required: true
+        type: string
+      workflow_run_number:
+        required: true
+        type: string
+
+jobs:
+  dump_config:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dump Vars context
+        id: variables
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
+        run: |
+          echo "$GITHUB_CONTEXT"
+
+
+  gh_release:
+    runs-on: ubuntu-latest
+    permissions:
+        contents: write
+    steps:
+      - name: Download
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: build.yml
+          workflow_conclusion: success
+          branch: ${{ github.ref }}
+          commit: ${{ github.sha }}
+          event: workflow_call
+          run_id: ${{ inputs.workflow_run_id }}
+          run_number: ${{ inputs.workflow_run_number }}
+          name: test-artifact-github
+          path: artifacts
+          # Optional, check the workflow run to whether it has an artifact
+          # then will get the last available artifact from the previous workflow
+          # default false, just try to download from the last one
+          check_artifacts: false
+          if_no_artifact_found: fail
+          allow_forks: false
+
+      - name: Version/Tag
+        shell: bash
+        run: |
+          _version=$(<artifacts/version.txt)
+          _tag="v${_version}"
+          echo "TAG_NAME=${_tag}" >> $GITHUB_ENV
+
+      - name: Publish
+        uses: softprops/action-gh-release@v2
+        with:
+          target_commitish: ${{ github.sha }}
+          tag_name: ${{ env.TAG_NAME }}
+          fail_on_unmatched_files: true
+          files: |
+            artifacts/github_release_file.txt
+

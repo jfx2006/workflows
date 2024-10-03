@@ -32,6 +32,8 @@ jobs:
           rm -rf upload
           mkdir upload
           dd if=/dev/urandom bs=512 count=1 of=/dev/stdout | base64 > upload/${FLAVOR}_release_file.txt
+          echo "1.0.1" > upload/version.txt
+          echo ${GITHUB_SHA} > upload/sha.txt
 
       - name: Upload
         uses: actions/upload-artifact@v4
@@ -39,3 +41,11 @@ jobs:
           name: test-artifact-${{ matrix.flavor }}
           path: upload/
           if-no-files-found: error
+
+  publish:
+    uses: ./.github/workflows/publish.yml
+    with:
+      workflow_run_id: ${{ github.run_id }}
+      workflow_run_number: ${{ github.run_number }}
+          
+  
