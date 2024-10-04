@@ -26,9 +26,10 @@ jobs:
       - name: Get Version -> Tag Name
         ## This obviously is quite incorrect. Need a way to extract versionName from gradle
         shell: bash
-        env:
-          APKANALYZER: ${{ env.ANDROID_SDK_ROOT }}/cmdline-tools/latest/bin/apkanalyzer
         run: |
+          APKANALYZER="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/apkanalyzer"
+          $APKANALYZER
+          
           APK_FILE="${APP_NAME}-${PACKAGE_FLAVOR}-${RELEASE_TYPE}-signed.apk"
           _version=$(${APKANALYZER} manifest version-name "${UPLOADS}/${APK}")
           _tag="${APP_NAME}-${_version}"
