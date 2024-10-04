@@ -1,0 +1,36 @@
+---
+name: APKAnalyze Debug
+on:
+  workflow_dispatch:
+
+jobs:
+  dump_config:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dump Vars context
+        id: variables
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
+        run: |
+          echo "$GITHUB_CONTEXT"
+
+  github_release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+
+      - name: Get Version -> Tag Name
+        ## This obviously is quite incorrect. Need a way to extract versionName from gradle
+        shell: bash
+        env:
+          APKANALYZER: ${{ env.ANDROID_SDK_ROOT }}/cmdline-tools/latest/bin/apkanalyzer
+        run: |
+          APK_FILE="${APP_NAME}-${PACKAGE_FLAVOR}-${RELEASE_TYPE}-signed.apk"
+          _version=$(${APKANALYZER} manifest version-name "${UPLOADS}/${APK}")
+          _tag="${APP_NAME}-${_version}"
+          echo "TAG_NAME=${_tag}" >> $GITHUB_ENV
+          echo "APK_FILE=${APK_FILE}" >> $GITHUB_ENV
