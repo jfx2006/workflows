@@ -4,13 +4,46 @@ on:
   workflow_dispatch:
 
 jobs:
+  get_environment:
+    runs-on: ubuntu-latest
+    outputs:
+      releaseEnv: ${{ steps.getReleaseEnv.outputs.result }}
+    steps:
+      - uses: actions/github-script@v7
+        id: getReleaseEnv
+        with:
+          result-encoding: string
+          script: |
+            const RELEASE_ENVS = {
+              "main": "daily",
+              "^TB_BETA_.*$": "beta",
+              "^TB_RELEASE_.*$": "release"
+            }
+            const ReleaseEnvs = new Proxy(RE, {
+                get(target, prop, receiver) {
+                    if (target.hasOwnProperty(prop)) {
+                        return target[prop]
+                    }
+                    const search = Object.keys(RE).filter((key) => new RegExp(key).test(prop))
+                    if (search.length === 1) {
+                        return target[search[0]]
+                    }
+                    return undefined
+                }
+            })
+            const branch = context.ref.replace(/^refs\/heads\//, "")
+            return ReleaseEnvs[branch]
+            
+
   dump_config:
     runs-on: ubuntu-latest
+    needs: get_environment
     steps:
       - name: Dump Vars context
         id: variables
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
+          RELEASE_ENV: ${{ needs.get_environment.outputs.releaseEnv }}
         run: |
           echo "$GITHUB_CONTEXT"
 
