@@ -19,7 +19,7 @@ jobs:
               "^TB_BETA_.*$": "beta",
               "^TB_RELEASE_.*$": "release"
             }
-            const ReleaseEnvs = new Proxy(RE, {
+            const ReleaseEnvs = new Proxy(RELEASE_ENVS, {
                 get(target, prop, receiver) {
                     if (target.hasOwnProperty(prop)) {
                         return target[prop]
@@ -49,6 +49,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    needs: dump_config
     strategy:
       matrix:
         flavor: ["github", "playstore"]
